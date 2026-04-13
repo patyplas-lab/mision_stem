@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión STRREAM Fontanar - Edición Diamante</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root { --pink: #E61E50; --navy: #002b49; --accent: #00e5ff; --bg-soft: #fce4ec; }
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); 
+            background-attachment: fixed; margin: 0; padding: 0; 
+        }
+        .header { background: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--pink); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .logo { max-width: 250px; }
+        .container { max-width: 1100px; margin: 20px auto; background: rgba(255, 255, 255, 0.97); border-radius: 20px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        
+        .screen { display: none; }
+        .active-screen { display: block; animation: fadeIn 0.5s; }
+
+        .protocol-box { background: var(--bg-soft); border: 2px solid var(--pink); padding: 25px; border-radius: 15px; text-align: left; font-size: 0.95rem; line-height: 1.6; }
+        .protocol-box h3 { color: var(--pink); margin-top: 0; border-bottom: 2px solid var(--pink); padding-bottom: 5px; }
+
+        .stats { display: flex; justify-content: space-around; background: var(--navy); color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px solid var(--pink); font-weight: bold; }
+        .timer-box { font-family: 'Share Tech Mono', monospace; font-size: 3.5rem; text-align: center; color: var(--pink); background: #222; padding: 10px; border-radius: 15px; border: 3px solid #444; }
+        .penalty { color: var(--pink); border: 2px solid var(--pink); padding: 10px; margin: 10px 0; font-weight: bold; text-align: center; display: none; background: #fff1f1; }
+
+        .role-input { width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #ddd; margin-bottom: 10px; font-family: inherit; }
+
+        /* Drag & Drop */
+        .drag-pool { background: white; padding: 15px; border: 3px dashed var(--pink); min-height: 80px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; border-radius: 10px; }
+        .name-tag { background: var(--pink); color: white; padding: 6px 12px; border-radius: 20px; cursor: move; font-size: 0.75rem; font-weight: bold; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
+        .name-tag:hover { transform: scale(1.05); }
+        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 15px; }
+        .drop-slot { background: white; border: 2px solid var(--navy); border-radius: 10px; min-height: 100px; padding: 10px; }
+        .drop-slot h4 { margin: 0 0 10px 0; color: white; text-align: center; padding: 5px; border-radius: 5px; font-size: 0.75rem; }
+        
+        /* Calendario Mejorado */
+        .day-picker { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .day-box { font-size: 0.6rem; border: 1px solid #eee; text-align: center; padding: 2px; background: #fafafa; border-radius: 2px; min-height: 35px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .day-num { font-weight: bold; color: #777; width: 100%; text-align: center; }
+        .day-filled { background: #ffebee !important; border-color: var(--pink); }
+        .day-filled .day-num { color: var(--pink); }
+        .mini-tag { font-size: 0.5rem !important; padding: 2px 4px !important; margin: 0 !important; width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; box-shadow: none; border: 1px solid white; }
+
+        /* Modal Visual para Fechas */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,43,73,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; border: 4px solid var(--pink); text-align: center; max-width: 400px; width: 80%; animation: fadeIn 0.3s; }
+
+        #cloud-container { width: 100%; height: 350px; background: #e0f7fa; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; position: relative; overflow: hidden; border: 3px solid var(--navy); margin-top: 15px; }
+        .cloud-word { position: absolute; font-weight: bold; white-space: nowrap; color: var(--navy); }
+
+        #cam-container { width: 100%; max-width: 400px; margin: 15px auto; border: 4px solid var(--pink); border-radius: 15px; overflow: hidden; background: #000; }
+        video { width: 100%; transform: scaleX(-1); }
+
+        .btn { background: var(--pink); color: white; border: none; padding: 18px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 15px rgba(230,30,80,0.3); transition: 0.2s; }
+        .btn:hover { filter: brightness(1.1); }
+        .btn:disabled { background: #ccc; box-shadow: none; }
+        .q-card { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 6px solid var(--navy); }
+        textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; box-sizing: border-box; min-height: 80px; }
+
+        .unlock-box { background: var(--navy); padding: 15px; border-radius: 10px; color: white; text-align: center; margin-top: 20px; }
+        .unlock-box input { padding: 10px; font-size: 1.2rem; text-align: center; text-transform: uppercase; font-family: 'Share Tech Mono', monospace; width: 60%; margin-top: 10px; border-radius: 5px; border: none; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .cursor::after { content: '█'; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    </style>
+</head>
+<body onload="checkAutoSave()">
+
+<div class="header">
+    <img src="LOGOTIPO_ISOTIPOCMYK-14.png" alt="Logo Colegio Fontanar" class="logo" onerror="this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6A_8S9C2ZpP9S7Y3M-Wf-D5_Y1P-8v1_S8Q&s'">
+</div>
+
+<div id="dayModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="color:var(--navy); margin-top:0;">📅 Fecha de Nacimiento</h3>
+        <p id="modalMsg" style="font-size:1.1rem;"></p>
+        <input type="number" id="dayInput" min="1" max="31" placeholder="Ej: 15" style="width:100px; padding:15px; font-size:1.5rem; text-align:center; margin-bottom:20px; border:2px solid var(--pink); border-radius:10px;">
+        <br>
+        <button class="btn" style="width:45%; display:inline-block; margin-right:5%;" onclick="confirmDay()">CONFIRMAR</button>
+        <button class="btn" style="width:45%; display:inline-block; background:var(--navy);" onclick="cancelDay()">CANCELAR</button>
+    </div>
+</div>
+
+<div class="container">
+    <div id="scr-login" class="screen active-screen">
+        <h2 style="color: var(--navy); text-align:center;">Misión STRREAM: El Guardián de la Historia</h2>
+        
+        <div class="protocol-box">
+            <h3>📜 Protocolo de Investigación de Campo</h3>
+            <ul>
+                <li><b>Bitácora en Mano:</b> Preparen papel y lápiz. No investigar sin registro.</li>
+                <li><b>Entrevistas uno a uno:</b> Hablen en voz baja. Prohibido gritar datos.</li>
+                <li><b>Recolección de Datos:</b> Anoten respuestas en papel con su compañera.</li>
+                <li><b>Regreso a la Base:</b> Regresen a su lugar tras obtener la información.</li>
+                <li><b>Registro Digital:</b> El vaciado se hace sentadas en su estación.</li>
+                <li><b>Deshacer Errores:</b> Si se equivocan al acomodar un nombre, hagan clic sobre él para regresarlo a la lista superior.</li>
+            </ul>
+        </div>
+
+        <div style="background: #fff; padding: 20px; border-radius: 15px; border: 2px solid #ddd; text-align: left; margin-bottom: 20px;">
+            <h3 style="color: var(--navy); margin-top:0;">👥 Asignación de Roles Oficiales</h3>
+            <input type="text" id="teamInput" class="role-input" style="border-color:var(--pink); border-width:3px;" placeholder="1. NOMBRE DE LA ESCUDERÍA (Ej. Las Pioneras)">
+            <input type="text" id="rolDatos" class="role-input" placeholder="2. Especialista en Datos (Encargada de mover nombres)">
+            <input type="text" id="rolCom" class="role-input" placeholder="3. Comunicadora (Encargada de redactar las respuestas)">
+            <input type="text" id="rolVuelo" class="role-input" placeholder="4. Ingeniera de Vuelo (Encargada de cuidar el huevo)">
+        </div>
+
+        <div style="text-align: center;">
+            <div style="margin:20px 0;">
+                <input type="checkbox" id="protocolCheck" onchange="document.getElementById('startBtn').disabled = !this.checked">
+                <label for="protocolCheck"><b>Aceptamos nuestros roles, el protocolo y protegeremos al Embajador.</b></label>
+            </div>
+            
+            <button id="startBtn" class="btn" style="max-width:400px;" onclick="startApp()" disabled>INICIAR MISIÓN</button>
+            <br>
+            <button id="btnResume" class="btn" style="background:#27ae60; max-width:400px; display:none; margin-top:15px;" onclick="resumeApp()">🔄 REANUDAR MISIÓN GUARDADA</button>
+            <br>
+            <button class="btn" style="background:var(--navy); max-width:200px; font-size:0.8rem; margin-top:20px;" onclick="document.getElementById('importFile').click()">📂 CARGAR RESPALDO</button>
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+        </div>
+    </div>
+
+    <div id="scr-game" class="screen">
+        <div class="stats">
+            <span>ESCUDERÍA: <span id="statTeam">---</span></span>
+            <span id="statStep">RETO 1/5</span>
+        </div>
+        <div id="timer" class="timer-box">00:00</div>
+        <div id="penalty-msg" class="penalty">🚨 ¡CHICHARRA! PENALIZACIÓN: Recoger salón completo.</div>
+
+        <h2 id="mTitle" style="color: var(--pink);"></h2>
+        <div style="background:var(--navy); color:white; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.95rem; font-family:'Share Tech Mono', monospace;">
+            <span id="mInstructions" class="cursor"></span>
+        </div>
+
+        <div id="interactive-area">
+            <p>Acomoden <b>TODOS</b> los nombres de la bitácora. <i>(Clic en un nombre ya asignado para deshacer)</i>.</p>
+            <div class="drag-pool" id="pool-names" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div id="table-display" class="table-grid"></div>
+        </div>
+
+        <div id="cloud-area" style="display:none; text-align:center;">
+            <input type="text" id="wordInput" style="padding:10px; width:60%;" placeholder="Compromiso clave...">
+            <button class="btn" style="width:20%;" onclick="addWord()">+</button>
+            <p><small>Palabras: <span id="wordCount">0</span>/20</small></p>
+            <div id="cloud-container"></div>
+        </div>
+
+        <div id="cam-area" style="display:none; text-align:center;">
+            <div id="cam-container"><video id="video" autoplay playsinline></video></div>
+            <button class="btn" style="background:var(--navy); width:auto;" onclick="takePhoto()">📸 FOTO DEL EMBAJADOR</button>
+            <img id="photo-preview" style="display:none; width:100%; max-width:400px; margin:10px auto; border-radius:15px; border:3px solid var(--pink);">
+        </div>
+
+        <div id="questions-area" style="margin-top:25px" oninput="saveLocal()"></div>
+        
+        <div class="unlock-box">
+            <p id="unlock-hint" style="margin:0; font-style:italic;"></p>
+            <input type="text" id="unlockPass" placeholder="CONTRASEÑA DE ACCESO">
+        </div>
+
+        <button class="btn" onclick="validateAndNext()">DESBLOQUEAR SIGUIENTE NIVEL ➔</button>
+    </div>
+
+    <div id="scr-end" class="screen" style="text-align:center;">
+        <h1 style="color:var(--pink)">¡MISIÓN STRREAM COMPLETADA!</h1>
+        <p>Escudería <b id="finalTeam"></b>, han salvado la identidad de su salón.</p>
+        <button class="btn" style="background:#27ae60; max-width:400px;" onclick="exportHTMLReport()">🎓 DESCARGAR DIPLOMA Y REPORTE</button>
+        <button class="btn" style="background:var(--navy); max-width:400px;" onclick="exportBackup()">📂 GUARDAR RESPALDO (.JSON)</button>
+    </div>
+</div>
+
+<script>
+    const NOMBRES = ["Macarena", "María Fernanda", "Camila", "Julieta", "Inés", "Luciana", "Alexa", "María Flores", "Almudena", "Mariana", "Pía", "María", "Sofía", "Emilia", "Maite", "Matilda", "Natalia", "Verónica", "Andrea", "Valentina", "Andrea Carolina", "María Leonor", "Ximena", "Diana", "Ana Sofía", "Jacqueline", "Silvana", "Valeria", "Sarah", "María José", "Paulina"];
+    const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const ESTADOS = ["Querétaro", "CDMX", "Edomex", "Guanajuato", "Jalisco", "Nuevo León", "Puebla", "Veracruz", "Michoacán", "Chihuahua", "Sonora", "Sinaloa", "Coahuila", "San Luis Potosí", "Hidalgo", "Yucatán", "Morelos", "Aguascalientes", "Tamaulipas", "Chiapas", "Otro Estado", "Extranjera"];
+    const SABORES = ["Dulce", "Salado", "Típico", "Moderno"];
+
+    const RETOS = [
+        { t: "Reto 1: Calendario del Salón", inst: "Objetivo: Organizar fechas de nacimiento.<br>NOTA: Así como organizamos el presente, los historiadores organizan datos del pasado para entender cómo vivían las personas.", time: 900, type: "calendar", pass: "TIEMPO", hint: "Pista Secreta: Es lo que medimos con un reloj y un calendario (6 letras).", qs: ["¿Cuál es el mes con más cumpleaños?", "¿Cómo se organizaron para investigar las fechas de todas?", "¿Hubo algún mes vacío?", "¿Quién cumple pronto?", "¿Qué importancia tiene para el equipo conocer la historia del grupo?"] },
+        { t: "Reto 2: Geografía del Salón", inst: "Objetivo: Descubrir lugares importantes.<br>Actividad: ¿Dónde naciste? ¿Cuál es tu lugar favorito para viajar?<br>Habilidad: Conexión con el paso del ser humano por el mundo.", time: 900, type: "table", cat: ESTADOS, pass: "MAPA", hint: "Pista Secreta: Es el dibujo donde vemos los estados y países (4 letras).", qs: ["¿Cuántas compañeras nacieron fuera de Querétaro?", "¿Cuál es el segundo estado con mayor cantidad de niñas en el salón?", "¿Encontraron a alguna compañera que haya nacido en el extranjero?", "Al observar de dónde vienen todas, ¿cómo creen que sus tradiciones y acentos ayudan a que el salón sea más divertido?", "¿Qué fue lo que más les sorprendió descubrir sobre la historia de viaje de sus compañeras?"] },
+        { t: "Reto 3: Sabores e Identidad", inst: "Objetivo: Identificar gustos y cultura.<br>Reflexión: ¿Cómo influyen las costumbres familiares en lo que comemos?", time: 900, type: "table", cat: SABORES, pass: "FAMILIA", hint: "Pista Secreta: Son las personas que nos enseñan nuestras costumbres en casa (7 letras).", qs: ["¿De qué manera las tradiciones de sus abuelos influyen en lo que comen hoy?", "¿Qué sabor fue el favorito del grupo?", "¿Qué platillo típico les pareció más interesante?", "¿Por qué los sabores de casa nos ayudan a recordar quiénes somos?", "¿Qué aprendieron de los gustos de sus compañeras hoy?"] },
+        { t: "Reto 4: Mis acciones importan", inst: "<b>Objetivo:</b> Conectar con la Big Idea STRREAM.<br><b>Actividad:</b> Entrevisten a sus compañeras preguntando:<br><i>1. ¿Qué acción haces para ayudar a los demás?</i><br><i>2. ¿Cómo cuidas tu entorno?</i><br>Extraigan 20 palabras clave y formen su nube.", time: 900, type: "cloud", pass: "EQUIPO", hint: "Pista Secreta: Es la forma en que trabajan juntas hoy (6 letras).", qs: ["¿Qué acciones colectivas proponen para ayudar a los demás?", "¿Cómo cuidan el entorno escolar diariamente como equipo?", "¿Cuál es el valor principal que guía este proyecto?", "Aunque el trabajo es grupal, ¿cómo tu actitud personal ayuda a que tu equipo sea el mejor?", "De las 20 palabras de su nube, ¿cuál explica mejor el compromiso de su escudería y por qué?"] },
+        { t: "Reto 5: El Guardián de la Historia", inst: "El Embajador: Su huevo lleva nuestra historia. Decórenlo con Cara, Cinturón (Reto 2), Escudo (Reto 3) y Capa (Reto 4).<br>Misión: Lanzarlo desde la Terraza. Protéjanlo con un Escudo Térmico.<br>⚠️ Foto ANTES del lanzamiento.", time: 1800, type: "cam", pass: "GRAVEDAD", hint: "Pista Secreta: Es la fuerza física que hace que el huevo caiga al piso (8 letras).", qs: ["¿Qué parte de la identidad decidieron que era más importante proteger en la cáscara y por qué?", "¿Cómo las ayudó el valor de su capa a ser mejores ingenieras al construir el escudo?", "¿Qué súper poder de la física (fuerza de triángulos, resistencia o amortiguación) eligieron para salvar al Embajador?", "Si sobrevivió, ¿qué fue la clave? Si se rompió, ¿qué aprendizaje valioso se llevan?", "Después de completar todos los retos, ¿cómo se sienten al ser las guardianas oficiales de la historia de su salón?"] }
+    ];
+
+    let state = { team: "", roles: {}, step: 1, time: 0, answers: {}, words: [], photo: null, penalty: false, birthdays: [], origins: [] };
+    let timerInt, typeInt;
+    let pendingDrop = null; // Variable para el modal
+
+    // --- SISTEMA DE AUTOGUARDADO (ANTI-DESASTRES) ---
+    function saveLocal() {
+        // Guarda las respuestas de los textareas temporalmente
+        let currentAnswers = [];
+        for(let i=0; i<5; i++) {
+            let ta = document.getElementById(`ans${i}`);
+            if(ta) currentAnswers.push(ta.value);
+        }
+        state.tempAnswers = currentAnswers;
+        localStorage.setItem('strreamData', JSON.stringify(state));
+    }
+
+    function checkAutoSave() {
+        if(localStorage.getItem('strreamData')) {
+            document.getElementById('btnResume').style.display = 'inline-block';
+        }
+    }
+
+    function resumeApp() {
+        state = JSON.parse(localStorage.getItem('strreamData'));
+        document.getElementById('statTeam').innerText = state.team;
+        document.getElementById('scr-login').style.display = 'none';
+        document.getElementById('scr-game').style.display = 'block';
+        loadStep();
+        
+        // Restaurar texto en textareas si lo había
+        if(state.tempAnswers) {
+            for(let i=0; i<5; i++) {
+                let ta = document.getElementById(`ans${i}`);
+                if(ta && state.tempAnswers[i]) ta.value = state.tempAnswers[i];
+            }
+        }
+    }
+
+    function startApp() {
+        if(document.getElementById('teamInput').value.trim().length < 3) return alert("Escriban el nombre de la Escudería.");
+        if(document.getElementById('rolDatos').value.trim() === "" || document.getElementById('rolCom').value.trim() === "" || document.getElementById('rolVuelo').value.trim() === "") return alert("Asignen los nombres de todos los roles oficiales.");
+        
+        state.team = document.getElementById('teamInput').value.trim();
+        state.roles = {
+            datos: document.getElementById('rolDatos').value.trim(),
+            com: document.getElementById('rolCom').value.trim(),
+            vuelo: document.getElementById('rolVuelo').value.trim()
+        };
+        
+        document.getElementById('statTeam').innerText = state.team;
+        document.getElementById('scr-login').style.display = 'none';
+        document.getElementById('scr-game').style.display = 'block';
+        initCamera(); loadStep();
+        saveLocal();
+    }
+
+    function typeWriterHTML(element, html, speed) {
+        clearInterval(typeInt);
+        element.innerHTML = '';
+        let i = 0; let isTag = false; let text = '';
+        typeInt = setInterval(() => {
+            if(i >= html.length) { clearInterval(typeInt); return; }
+            let char = html.charAt(i);
+            if(char === '<') isTag = true;
+            text += char;
+            if(char === '>') isTag = false;
+            if(!isTag) element.innerHTML = text;
+            i++;
+        }, speed);
+    }
+
+    function loadStep() {
+        const r = RETOS[state.step - 1];
+        state.time = r.time;
+        document.getElementById('mTitle').innerText = r.t;
+        
+        typeWriterHTML(document.getElementById('mInstructions'), "> RECIBIENDO TRANSMISIÓN...<br>" + r.inst, 30);
+        
+        document.getElementById('statStep').innerText = `RETO ${state.step}/5`;
+        document.getElementById('unlock-hint').innerText = r.hint;
+        document.getElementById('unlockPass').value = "";
+        
+        document.getElementById('interactive-area').style.display = (r.type !== 'cloud' && r.type !== 'cam') ? 'block' : 'none';
+        document.getElementById('cloud-area').style.display = r.type === 'cloud' ? 'block' : 'none';
+        document.getElementById('cam-area').style.display = r.type === 'cam' ? 'block' : 'none';
+        document.getElementById('penalty-msg').style.display = 'none';
+
+        if(r.type === 'table' || r.type === 'calendar') { fillPool(); initGrid(r); restoreGridState(); }
+        
+        const qArea = document.getElementById('questions-area');
+        qArea.innerHTML = "";
+        r.qs.forEach((q, i) => { qArea.innerHTML += `<div class="q-card"><b>${q}</b><textarea id="ans${i}"></textarea></div>`; });
+        startTimer();
+    }
+
+    function fillPool() {
+        const p = document.getElementById('pool-names'); p.innerHTML = "";
+        NOMBRES.forEach((n, i) => {
+            const d = document.createElement('div');
+            d.className = "name-tag"; d.innerText = n; d.draggable = true; d.id = `n-${state.step}-${i}`;
+            d.ondragstart = (e) => e.dataTransfer.setData("text", e.target.id);
+            
+            // Función Undo individual
+            d.onclick = function() {
+                if(this.parentElement.id !== 'pool-names') {
+                    let oldParent = this.parentElement;
+                    
+                    this.classList.remove('mini-tag');
+                    document.getElementById('pool-names').appendChild(this);
+                    
+                    state.birthdays = state.birthdays.filter(b => b.id !== this.id);
+                    state.origins = state.origins.filter(o => o.id !== this.id);
+                    saveLocal(); // Autoguardado
+                    
+                    if(oldParent && oldParent.classList.contains('day-box')) {
+                        if(oldParent.querySelectorAll('.name-tag').length === 0) {
+                            oldParent.classList.remove('day-filled');
+                        }
+                    }
+                }
+            };
+            p.appendChild(d);
+        });
+    }
+
+    // Restaura la posición si recargan la página
+    function restoreGridState() {
+        if(state.step === 1 && state.birthdays.length > 0) {
+            state.birthdays.forEach(b => {
+                let el = document.getElementById(b.id);
+                let target = document.getElementById(`day-${b.mes}-${b.dia}`);
+                if(el && target) { target.classList.add('day-filled'); el.classList.add('mini-tag'); target.appendChild(el); }
+            });
+        }
+        if(state.step === 2 && state.origins.length > 0) {
+            state.origins.forEach(o => {
+                let el = document.getElementById(o.id);
+                let slots = document.querySelectorAll('.drop-slot');
+                slots.forEach(s => { if(s.querySelector('h4').innerText === o.lugar && el) s.appendChild(el); });
+            });
+        }
+    }
+
+    function initGrid(r) {
+        const g = document.getElementById('table-display'); g.innerHTML = "";
+        let list = r.type === 'calendar' ? MESES : r.cat;
+        
+        list.forEach((item, i) => {
+            const slot = document.createElement('div'); slot.className = "drop-slot";
+            let color = (item === "Querétaro") ? "#27ae60" : ["#e67e22","#9b59b6","#3498db","#E61E50","#f1c40f"][i%5];
+            slot.innerHTML = `<h4 style="background:${color}">${item}</h4>`;
+            
+            if(r.type === 'calendar') {
+                const pk = document.createElement('div'); pk.className = "day-picker";
+                for(let d=1; d<=31; d++) {
+                    const db = document.createElement('div'); db.className = "day-box"; db.id = `day-${item}-${d}`;
+                    db.innerHTML = `<span class="day-num">${d}</span>`; 
+                    pk.appendChild(db);
+                }
+                slot.appendChild(pk);
+            }
+
+            slot.ondragover = (e) => e.preventDefault();
+            slot.ondrop = (e) => {
+                e.preventDefault();
+                const id = e.dataTransfer.getData("text");
+                const el = document.getElementById(id);
+                
+                if(r.type === 'calendar') {
+                    // Abrir Modal en lugar del Prompt gris
+                    pendingDrop = { el: el, item: item };
+                    document.getElementById('modalMsg').innerHTML = `¿Qué día del mes de <b>${item}</b> nació <b>${el.innerText}</b>?`;
+                    document.getElementById('dayInput').value = "";
+                    document.getElementById('dayModal').style.display = 'flex';
+                    document.getElementById('dayInput').focus();
+                } else { 
+                    slot.appendChild(el); 
+                    if(state.step === 2) state.origins.push({ id: el.id, nombre: el.innerText, lugar: item });
+                    saveLocal(); // Autoguardado
+                }
+            };
+            g.appendChild(slot);
+        });
+    }
+
+    // Funciones del Modal de Calendario
+    function confirmDay() {
+        let dayStr = document.getElementById('dayInput').value;
+        let day = parseInt(dayStr);
+        
+        // Validación Matemática Rigurosa
+        if(isNaN(day) || day < 1 || day > 31) {
+            alert("Las ingenieras son precisas. Ingresa un día válido (del 1 al 31).");
+            return;
+        }
+
+        let item = pendingDrop.item;
+        let el = pendingDrop.el;
+        const target = document.getElementById(`day-${item}-${day}`);
+        
+        if(target) {
+            target.classList.add('day-filled'); 
+            el.classList.add('mini-tag'); 
+            target.appendChild(el); // Apila a la niña en ese día
+            state.birthdays.push({ id: el.id, nombre: el.innerText, mes: item, dia: day });
+            saveLocal(); // Autoguardado
+        }
+        
+        document.getElementById('dayModal').style.display = 'none';
+        pendingDrop = null;
+    }
+
+    function cancelDay() {
+        document.getElementById('dayModal').style.display = 'none';
+        pendingDrop = null;
+        // Al cancelar, la niña se queda automáticamente en el pool de arriba.
+    }
+
+    function startTimer() {
+        clearInterval(timerInt);
+        timerInt = setInterval(() => {
+            state.time--;
+            let m = Math.floor(state.time/60), s = state.time%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+            if(state.time <= 0) { document.getElementById('penalty-msg').style.display='block'; state.penalty = true; clearInterval(timerInt); }
+        }, 1000);
+    }
+
+    function addWord() {
+        const inp = document.getElementById('wordInput');
+        if(!inp.value.trim()) return;
+        state.words.push(inp.value.toUpperCase());
+        document.getElementById('wordCount').innerText = state.words.length;
+        const w = document.createElement('span');
+        w.className = "cloud-word"; w.innerText = inp.value.toUpperCase();
+        w.style.left = (Math.random()*70 + 15) + "%"; w.style.top = (Math.random()*70 + 15) + "%";
+        w.style.fontSize = (Math.random()*22 + 12) + "px";
+        w.style.color = ["#E61E50","#002b49","#27ae60"][Math.floor(Math.random()*3)];
+        w.style.transform = `rotate(${Math.random()*60-30}deg)`;
+        document.getElementById('cloud-container').appendChild(w);
+        inp.value = "";
+        saveLocal();
+    }
+
+    async function initCamera() { try { document.getElementById('video').srcObject = await navigator.mediaDevices.getUserMedia({video:true}); } catch(e){} }
+    function takePhoto() {
+        const v = document.getElementById('video'), c = document.createElement('canvas');
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        state.photo = c.toDataURL();
+        document.getElementById('photo-preview').src = state.photo; document.getElementById('photo-preview').style.display='block';
+        saveLocal();
+    }
+
+    function validateAndNext() {
+        saveLocal(); // Guardar respuestas texto antes de validar
+        const r = RETOS[state.step-1];
+        
+        if(document.getElementById('unlockPass').value.trim().toUpperCase() !== r.pass) {
+            return alert("Contraseña incorrecta. Revisen la pista secreta.");
+        }
+
+        let stepAns = [];
+        for(let i=0; i<5; i++) { 
+            let val = document.getElementById(`ans${i}`).value.trim();
+            if(val.length < 5) return alert("Completen las 5 respuestas detalladamente."); 
+            stepAns.push(val);
+        }
+
+        let poolCount = 0;
+        document.querySelectorAll('#pool-names .name-tag').forEach(el => poolCount++);
+        if((r.type === 'table' || r.type === 'calendar') && poolCount > 0) return alert("Acomoden a todas las compañeras de la lista superior.");
+        
+        if(r.type === 'cloud' && state.words.length < 20) return alert("Faltan palabras clave (mínimo 20).");
+        if(r.type === 'cam' && !state.photo) return alert("Capturen la foto del Embajador antes de avanzar.");
+
+        state.answers[state.step] = { title: r.t, responses: stepAns };
+        saveLocal();
+        
+        if(state.step < 5) { state.step++; loadStep(); window.scrollTo(0,0); }
+        else { 
+            document.getElementById('scr-game').style.display='none'; 
+            document.getElementById('scr-end').style.display='block'; 
+            document.getElementById('finalTeam').innerText = state.team; 
+            localStorage.removeItem('strreamData'); // Limpiar caché al terminar
+        }
+    }
+
+    function countFrequencies(arr, key) {
+        let counts = {};
+        arr.forEach(item => { counts[item[key]] = (counts[item[key]] || 0) + 1; });
+        return counts;
+    }
+
+    function drawChartHTML(counts) {
+        if(Object.keys(counts).length === 0) return "<p>Sin datos</p>";
+        let max = Math.max(...Object.values(counts));
+        let html = `<div style="border-left: 3px solid #002b49; padding-left: 15px;">`;
+        for(let k in counts) {
+            let width = (counts[k] / max) * 100;
+            html += `<div style="margin-bottom:8px;"><small><b>${k} (${counts[k]})</b></small>
+                     <div style="background:#E61E50; height:15px; width:${width}%; border-radius:3px;"></div></div>`;
+        }
+        return html + `</div>`;
+    }
+
+    function exportHTMLReport() {
+        let h = `<html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;padding:30px;color:#002b49;background:#f4f7f6;}h1,h2,h3{color:#E61E50}.box{background:white;padding:25px;border-radius:12px;margin-bottom:25px;box-shadow:0 4px 10px rgba(0,0,0,0.1)}img{max-width:400px;border:5px solid #002b49;border-radius:15px} .daip-tag{background:#002b49;color:white;padding:5px 10px;border-radius:5px;font-size:0.8rem;}</style></head><body>`;
+        
+        h += `
+        <div style="border: 12px solid #002b49; padding: 40px; text-align: center; border-radius: 20px; background: white; margin-bottom: 40px;">
+            <h1 style="font-size: 3em; margin-bottom: 10px;">ACADEMIA STRREAM</h1>
+            <h2 style="color: #002b49; font-style: italic;">Certificado de Ingeniería e Identidad</h2>
+            <p style="font-size:1.2rem;">Se otorga el presente reconocimiento a la Escudería:</p>
+            <h2 style="font-size: 3em; border-bottom: 3px solid #E61E50; display: inline-block; margin-top:0;">${state.team}</h2>
+            <p style="font-size:1.1rem;">Por haber completado con éxito la misión "El Guardián de la Historia".</p>
+            <div style="display:flex; justify-content:space-around; margin-top: 30px; background:#fce4ec; padding:20px; border-radius:10px;">
+                <p>📊 <b>Especialista en Datos:</b><br>${state.roles.datos}</p>
+                <p>🎤 <b>Comunicadora:</b><br>${state.roles.com}</p>
+                <p>🚀 <b>Ingeniera de Vuelo:</b><br>${state.roles.vuelo}</p>
+            </div>
+        </div>`;
+
+        h += `<h1>Reporte de Evaluación STRREAM</h1>`;
+        h += `<p><b>Estado del tiempo:</b> ${state.penalty?'PENALIZADO (Exceso de tiempo)':'A TIEMPO'}</p>`;
+        
+        let countsMeses = countFrequencies(state.birthdays, 'mes');
+        let countsEstados = countFrequencies(state.origins, 'lugar');
+
+        h += `<div class="box"><h2>📊 Análisis de Datos Visual (Dimensión Intelectual)</h2>
+              <div style="display:flex; gap:40px;">
+                <div style="flex:1"><h3>Frecuencia de Cumpleaños</h3>${drawChartHTML(countsMeses)}</div>
+                <div style="flex:1"><h3>Mapa de Orígenes</h3>${drawChartHTML(countsEstados)}</div>
+              </div></div>`;
+
+        h += `<div class="box"><h2>📋 Bitácoras Detalladas de la Escudería</h2>
+              <div style="display:flex; gap:40px;">
+                <div style="flex:1"><h3>📅 Cumpleaños Asignados</h3><ul>`;
+        state.birthdays.sort((a,b)=>MESES.indexOf(a.mes)-MESES.indexOf(b.mes) || a.dia - b.dia).forEach(b=>{
+            h += `<li><b>${b.nombre}</b>: ${b.dia} de ${b.mes}</li>`;
+        });
+        h += `</ul></div>
+                <div style="flex:1"><h3>🧭 Orígenes Asignados</h3><ul>`;
+        state.origins.sort((a,b)=>a.lugar.localeCompare(b.lugar)).forEach(o=>{
+            h += `<li><b>${o.nombre}</b>: ${o.lugar}</li>`;
+        });
+        h += `</ul></div>
+              </div></div>`;
+
+        const DAIP_TAGS = ["🧠 Dimensión Intelectual", "❤️ Dimensión Afectiva", "❤️ Dimensión Afectiva", "🌱 Dimensión Volitiva", "🏃‍♀️ Dimensión Física"];
+        
+        for(let s in state.answers) {
+            h += `<div class="box"><span class="daip-tag">${DAIP_TAGS[s-1]}</span><h2 style="margin-top:10px;">Reto ${s}: ${state.answers[s].title}</h2><ul>`;
+            state.answers[s].responses.forEach(r => h += `<li style="margin-bottom:10px;">${r}</li>`);
+            if(s == 4) h += `<p><b>Compromisos:</b> ${state.words.join(' • ')}</p>`;
+            if(s == 5) h += `<p><b>Foto de Evidencia:</b></p><img src="${state.photo}">`;
+            h += `</ul></div>`;
+        }
+        h += `</body></html>`;
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([h], {type:'text/html'}));
+        a.download = `Certificado_Reporte_${state.team}.html`; a.click();
+    }
+
+    function exportBackup() {
+        const blob = new Blob([JSON.stringify(state)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `Respaldo_${state.team}.json`; a.click();
+    }
+
+    function importData(e) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            state = JSON.parse(ev.target.result);
+            document.getElementById('statTeam').innerText = state.team;
+            document.getElementById('scr-login').style.display='none';
+            document.getElementById('scr-game').style.display='block';
+            loadStep();
+            if(state.tempAnswers) {
+                for(let i=0; i<5; i++) {
+                    let ta = document.getElementById(`ans${i}`);
+                    if(ta && state.tempAnswers[i]) ta.value = state.tempAnswers[i];
+                }
+            }
+        };
+        reader.readAsText(e.target.files[0]);
+    }
+</script>
+</body>
+</html>
